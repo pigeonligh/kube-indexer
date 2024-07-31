@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
@@ -14,11 +15,16 @@ import (
 	"github.com/pigeonligh/kube-indexer/pkg/server"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 func main() {
 	configFlags := &genericclioptions.ConfigFlags{
 		KubeConfig: new(string),
 	}
 	var templateFile string
+	var restfulPort int
 
 	cmd := &cobra.Command{
 		Run: func(cmd *cobra.Command, args []string) {
@@ -27,7 +33,7 @@ func main() {
 				panic(err)
 			}
 
-			c, err := cache.New(configFlags, template.CacheFor()...)
+			c, err := cache.New(configFlags, template.ForList()...)
 			if err != nil {
 				panic(err)
 			}
@@ -38,7 +44,7 @@ func main() {
 
 			c.WaitForCacheSync(cmd.Context())
 
-			s := server.New(c, template)
+			s := server.New(c, restfulPort, template)
 			if err = s.Run(cmd.Context()); err != nil {
 				panic(err)
 			}
@@ -47,6 +53,7 @@ func main() {
 
 	configFlags.AddFlags(cmd.Flags())
 	cmd.Flags().StringVar(&templateFile, "template", "", "template")
+	cmd.Flags().IntVar(&restfulPort, "port", 8080, "port")
 	_ = cmd.Execute()
 }
 

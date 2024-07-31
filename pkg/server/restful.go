@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,15 +13,29 @@ type restfulServer struct {
 	s *server
 }
 
+func (s *restfulServer) getKinds(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, s.s.template.KindList())
+}
+
+func (s *restfulServer) getKeys(ctx *gin.Context) {
+	kind := ctx.Param("kind")
+
+	if s.s.data == nil {
+		ctx.String(http.StatusBadRequest, "not init")
+		return
+	}
+	ks := s.s.data.Kind(kind)
+	if ks == nil {
+		ctx.String(http.StatusBadRequest, "kind not found")
+	} else {
+		ctx.JSON(http.StatusOK, ks.Keys())
+	}
+}
+
 func (s *restfulServer) getObject(ctx *gin.Context) {
 	kind := ctx.Param("kind")
-	ns := ctx.Param("ns")
-	name := ctx.Param("name")
-
-	key := name
-	if ns != "" {
-		key = ns + "/" + name
-	}
+	key := ctx.Param("key")
+	key = strings.TrimPrefix(key, "/")
 
 	if s.s.data == nil {
 		ctx.String(http.StatusBadRequest, "not init")
@@ -41,8 +57,9 @@ func (s *restfulServer) getObject(ctx *gin.Context) {
 func (s *restfulServer) Run(ctx context.Context) error {
 	r := gin.Default()
 
-	r.GET("/:kind/namespace/:ns/name/:name", s.getObject)
-	r.GET("/:kind/name/:name", s.getObject)
+	r.GET("/kinds", s.getKinds)
+	r.GET("/:kind", s.getKeys)
+	r.GET("/:kind/*key", s.getObject)
 
-	return r.Run(":8082")
+	return r.Run(fmt.Sprintf(":%v", s.s.port))
 }

@@ -12,14 +12,22 @@ type Server interface {
 }
 
 type server struct {
-	c         cache.Cache
+	c cache.Cache
+
+	port     int
+	template *dataprocessor.Template
+
 	data      dataprocessor.Source
 	processor dataprocessor.Processor
 }
 
-func New(c cache.Cache, template *dataprocessor.Template) Server {
+func New(c cache.Cache, port int, template *dataprocessor.Template) Server {
 	return &server{
-		c:         c,
+		c: c,
+
+		port:     port,
+		template: template,
+
 		data:      dataprocessor.NewSource(),
 		processor: dataprocessor.NewProcessor(template, rawPrefix),
 	}

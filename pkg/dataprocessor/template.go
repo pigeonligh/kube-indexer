@@ -40,7 +40,15 @@ type Template struct {
 	Actions []Action  `yaml:"actions"`
 }
 
-func (t Template) CacheFor() []string {
+func (t Template) KindList() []string {
+	ret := make([]string, 0)
+	for _, kind := range t.Kinds {
+		ret = append(ret, kind.Name)
+	}
+	return ret
+}
+
+func (t Template) ForList() []string {
 	ret := make([]string, 0)
 	for _, kind := range t.Kinds {
 		ret = append(ret, kind.For)
