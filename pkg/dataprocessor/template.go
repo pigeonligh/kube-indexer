@@ -5,7 +5,7 @@ type KindDef struct {
 	For  string `yaml:"for"`
 }
 
-type AttrValueFrom struct {
+type ValueFrom struct {
 	Expr *string `yaml:"expr"`
 }
 
@@ -14,12 +14,21 @@ type AttrDef struct {
 	Kinds []string `yaml:"kinds"`
 	Name  string   `yaml:"name"`
 
-	Value     any            `yaml:"value"`
-	ValueFrom *AttrValueFrom `yaml:"valueFrom"`
+	Value     any        `yaml:"value"`
+	ValueFrom *ValueFrom `yaml:"valueFrom"`
+}
+
+type BindMatch struct {
+	FirstValue      any        `yaml:"firstValue"`
+	FirstValueFrom  *ValueFrom `yaml:"firstValueFrom"`
+	SecondValue     any        `yaml:"secondValue"`
+	SecondValueFrom *ValueFrom `yaml:"secondValueFrom"`
 }
 
 type BindConditionFrom struct {
-	Expr *string `yaml:"expr"`
+	// Expr *string `yaml:"expr"`
+
+	Matches []BindMatch `yaml:"matches"`
 }
 
 type BindDef struct {

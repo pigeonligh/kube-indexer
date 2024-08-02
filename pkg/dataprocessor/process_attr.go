@@ -47,21 +47,6 @@ func (p *processor) processAttr(src Source, attr *AttrDef) error {
 }
 
 func DefaultProcessAttrForObject(src Source, attr *AttrDef, obj Object) {
-	if attr.Value != nil {
-		obj.Set(attr.Name, NewObject(attr.Value))
-		return
-	}
-	if vf := attr.ValueFrom; vf != nil {
-		if vf.Expr != nil {
-			result, err := EvalExpr(src, *vf.Expr, map[string]Object{
-				"value": obj,
-			})
-			if err != nil {
-				result = NewObject(nil)
-			}
-			obj.Set(attr.Name, result)
-			return
-		}
-	}
-	obj.Set(attr.Name, nil)
+	result := EvalValue(src, obj, attr.Value, attr.ValueFrom)
+	obj.Set(attr.Name, result)
 }

@@ -78,9 +78,7 @@ func EvalExpr(src Source, e string, valueMap map[string]Object) (Object, error) 
 
 func evalDot(src Source) any {
 	return func(obj Object, key any) Object {
-		for obj != nil && obj.Ref() != nil {
-			obj = obj.RefValue(src)
-		}
+		obj = UnrefObject(src, obj)
 
 		switch key := key.(type) {
 		case int:
@@ -93,18 +91,14 @@ func evalDot(src Source) any {
 			return NewObject(nil)
 		}
 
-		for obj != nil && obj.Ref() != nil {
-			obj = obj.RefValue(src)
-		}
+		obj = UnrefObject(src, obj)
 		return NewObject(obj)
 	}
 }
 
 func evalRange(src Source) any {
 	return func(obj Object, f, t any) Object {
-		for obj != nil && obj.Ref() != nil {
-			obj = obj.RefValue(src)
-		}
+		obj = UnrefObject(src, obj)
 
 		var fp, tp *int
 		if f, ok := f.(int); ok {
@@ -120,10 +114,7 @@ func evalRange(src Source) any {
 func evalValue(src Source) any {
 	return func(obj any) any {
 		if obj, ok := obj.(Object); ok {
-			for obj != nil && obj.Ref() != nil {
-				obj = obj.RefValue(src)
-			}
-			return obj.Value()
+			return UnrefObject(src, obj).Value()
 		}
 		return obj
 	}

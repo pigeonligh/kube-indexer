@@ -33,13 +33,13 @@ type Object interface {
 type Objects []Object
 
 type object struct {
-	r   *Ref
-	val any
+	R   *Ref
+	Val any
 }
 
 func NewRef(r Ref) Object {
 	return &object{
-		r: &r,
+		R: &r,
 	}
 }
 
@@ -49,27 +49,27 @@ func NewObject(v any) Object {
 			return o
 		}
 	}
-	return &object{val: v}
+	return &object{Val: v}
 }
 
 func (obj *object) Ref() *Ref {
-	return obj.r
+	return obj.R
 }
 
 func (obj *object) RefValue(src Source) Object {
-	if obj.r != nil {
-		ret := src.Kind(obj.r.Kind).Get(obj.r.Key)
+	if obj.R != nil {
+		ret := src.Kind(obj.R.Kind).Get(obj.R.Key)
 		return ret
 	}
 	return obj
 }
 
 func (obj *object) Set(k string, v Object) {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call Set for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case map[string]any:
 		val[k] = v
 
@@ -89,11 +89,11 @@ func (obj *object) Set(k string, v Object) {
 }
 
 func (obj *object) SetIndex(i int, v Object) {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call SetIndex for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case Object:
 		val.SetIndex(i, v)
 
@@ -110,11 +110,11 @@ func (obj *object) SetIndex(i int, v Object) {
 }
 
 func (obj *object) Get(k string) Object {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call Get for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case map[string]any:
 		return NewObject(val[k])
 
@@ -139,11 +139,11 @@ func (obj *object) Get(k string) Object {
 }
 
 func (obj *object) GetIndex(i int) Object {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call GetIndex for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case Object:
 		return val.GetIndex(i)
 
@@ -161,11 +161,11 @@ func (obj *object) GetIndex(i int) Object {
 }
 
 func (obj *object) Range(start, end *int) Object {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call Range for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case Object:
 		return NewObject(val.Range(start, end))
 
@@ -187,30 +187,30 @@ func (obj *object) Range(start, end *int) Object {
 }
 
 func (obj *object) Push(v Object) {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call Range for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case Object:
 		val.Push(v)
 
 	case []any:
 		val = append(val, v.Value())
-		obj.val = val
+		obj.Val = val
 
 	case Objects:
 		val = append(val, v)
-		obj.val = val
+		obj.Val = val
 	}
 }
 
 func (obj *object) Len() int {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call Len for ref object")
 	}
 
-	switch val := obj.val.(type) {
+	switch val := obj.Val.(type) {
 	case map[string]any:
 		return len(val)
 
@@ -227,29 +227,29 @@ func (obj *object) Len() int {
 }
 
 func (obj *object) Value() any {
-	if obj.r != nil {
+	if obj.R != nil {
 		panic("cannot call Value for ref object")
 	}
 
-	if o, ok := obj.val.(Object); ok {
+	if o, ok := obj.Val.(Object); ok {
 		return o.Value()
 	}
-	return obj.val
+	return obj.Val
 }
 
 func (obj *object) String() string {
-	if obj.r != nil {
-		return fmt.Sprintf("ref(%v,%v)", obj.r.Kind, obj.r.Key)
+	if obj.R != nil {
+		return fmt.Sprintf("ref(%v,%v)", obj.R.Kind, obj.R.Key)
 	}
-	return fmt.Sprint(obj.val)
+	return fmt.Sprint(obj.Val)
 }
 
 func (obj *object) MarshalJSON() ([]byte, error) {
-	if obj.r != nil {
+	if obj.R != nil {
 		m := map[string]any{
-			"ref": *obj.r,
+			"ref": *obj.R,
 		}
 		return json.Marshal(m)
 	}
-	return json.Marshal(obj.val)
+	return json.Marshal(obj.Val)
 }

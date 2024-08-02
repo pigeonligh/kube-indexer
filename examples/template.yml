@@ -10,33 +10,41 @@ actions:
     - podgroup
     name: namespace
     valueFrom:
-      expr: value.data.metadata.namespace
+      expr: raw.metadata.namespace
 - attr:
     kinds:
     - pod
     - podgroup
     name: name
     valueFrom:
-      expr: value.data.metadata.name
+      expr: raw.metadata.name
 - attr:
     kind: pod
     name: node
     valueFrom:
-      expr: value.data.spec.nodeName
+      expr: raw.spec.nodeName
 - attr:
     kind: pod
     name: podgroup
     valueFrom:
-      expr: value.data.metadata.annotations["scheduling.k8s.io/group-name"]
+      expr: raw.metadata.annotations["scheduling.k8s.io/group-name"]
 - bind:
     kinds:
     - pod
     - podgroup
     name: pgbind
     conditionFrom:
-      expr: value1.namespace == value2.namespace && value1.podgroup == value2.name
+      matches:
+      - firstValueFrom: 
+          expr: cur.namespace
+        secondValueFrom: 
+          expr: cur.namespace
+      - firstValueFrom: 
+          expr: cur.podgroup
+        secondValueFrom: 
+          expr: cur.name
 - attr:
     kind: podgroup
     name: pods
     valueFrom:
-      expr: len(value.pgbind)
+      expr: len(cur.pgbind)

@@ -6,13 +6,7 @@ type processor struct {
 	tmpl      *Template
 	rawPrefix string
 
-	rvCache map[string]any  // kindkey => resource_version
-	cached  map[string]bool // kindkey => updated in process
-
-	bindCache      map[bindCacheKey]bool
-	newBindCache   map[bindCacheKey]bool
-	bindCountCache map[bindCacheKey]int
-
+	rvCache    map[string]any // kindkey => resource_version
 	lastResult Source
 }
 
@@ -21,16 +15,11 @@ func NewProcessor(tmpl *Template, rawPrefix string) Processor {
 		tmpl:      tmpl,
 		rawPrefix: rawPrefix,
 
-		rvCache:        make(map[string]any),
-		bindCache:      make(map[bindCacheKey]bool),
-		bindCountCache: make(map[bindCacheKey]int),
+		rvCache: make(map[string]any),
 	}
 }
 
 func (p *processor) Process(src Source) (Source, error) {
-	p.cached = make(map[string]bool)
-	p.newBindCache = make(map[bindCacheKey]bool)
-
 	lastRvCache := p.rvCache
 	p.rvCache = make(map[string]any)
 
@@ -60,10 +49,6 @@ func (p *processor) Process(src Source) (Source, error) {
 				}))
 
 				kindkey := getKindKey(kind.Name, key)
-				lastRv := lastRvCache[kindkey]
-				if lastRv != nil && lastRv == rv {
-					p.cached[kindkey] = true
-				}
 				p.rvCache[kindkey] = rv
 			}
 			s.Set(newKs)
@@ -71,7 +56,6 @@ func (p *processor) Process(src Source) (Source, error) {
 	}
 
 	if reflect.DeepEqual(lastRvCache, p.rvCache) {
-		p.newBindCache = p.bindCache
 		return p.lastResult, nil
 	}
 
@@ -89,7 +73,6 @@ func (p *processor) Process(src Source) (Source, error) {
 			}
 		}
 	}
-	p.bindCache = p.newBindCache
 	p.lastResult = s
 	return s, nil
 }
