@@ -11,35 +11,40 @@ const (
 	resourceVersionKey = "_resource_version"
 )
 
+const (
+	suffixFirstKind  = "X"
+	suffixSecondKind = "Y"
+)
+
 func (p *processor) checkBind(src Source, bind *BindDef) (KindSource, KindSource, error) {
-	var k1, k2 string
-	switch len(bind.Kinds) {
-	case 1:
-		k1 = bind.Kinds[0]
-		k2 = bind.Kinds[0]
-
-	case 2:
-		k1 = bind.Kinds[0]
-		k2 = bind.Kinds[1]
-
-	default:
+	if len(bind.Kinds) == 0 || len(bind.Kinds) > 2 {
 		return nil, nil, fmt.Errorf("invalid bind kinds %v", bind.Kinds)
 	}
 
+	k1 := bind.Kinds[0]
 	ks1 := src.Kind(k1)
-	ks2 := src.Kind(k2)
 	if ks1 == nil {
 		return nil, nil, fmt.Errorf("unknown kind %v for bind %v", k1, bind.Name)
 	}
+
+	if len(bind.Kinds) == 1 {
+		if ks1.HasProperties(bind.Name) {
+			return nil, nil, fmt.Errorf("duplicate definition for %v.%v", k1, bind.Name)
+		}
+		return ks1, nil, nil
+	}
+
+	if ks1.HasProperties(bind.Name + suffixFirstKind) {
+		return nil, nil, fmt.Errorf("duplicate definition for %v.%v", k1, bind.Name+suffixFirstKind)
+	}
+
+	k2 := bind.Kinds[1]
+	ks2 := src.Kind(k2)
 	if ks2 == nil {
 		return nil, nil, fmt.Errorf("unknown kind %v for bind %v", k1, bind.Name)
 	}
-
-	if ks1.HasProperties(bind.Name) {
-		return nil, nil, fmt.Errorf("duplicate definition for %v.%v", k1, bind.Name)
-	}
-	if ks2.HasProperties(bind.Name) {
-		return nil, nil, fmt.Errorf("duplicate definition for %v.%v", k2, bind.Name)
+	if ks2.HasProperties(bind.Name + suffixSecondKind) {
+		return nil, nil, fmt.Errorf("duplicate definition for %v.%v", k2, bind.Name+suffixSecondKind)
 	}
 
 	return ks1, ks2, nil
@@ -51,16 +56,16 @@ func (p *processor) processBind(src Source, bind *BindDef) error {
 		return err
 	}
 
-	if ks1.Kind() == ks2.Kind() {
-		p.processBindSameKind(src, bind, ks1)
+	if ks2 == nil {
+		p.processBindOneKind(src, bind, ks1)
 	} else {
-		p.processBindDiffKind(src, bind, ks1, ks2)
+		p.processBindTwoKind(src, bind, ks1, ks2)
 	}
 
 	return nil
 }
 
-func (p *processor) processBindSameKind(
+func (p *processor) processBindOneKind(
 	src Source, bind *BindDef, ks KindSource,
 ) {
 	setPropertiesForKindSource(ks, bind.Name)
@@ -71,12 +76,12 @@ func (p *processor) processBindSameKind(
 	}
 	if bind.ConditionFrom != nil {
 		if len(bind.ConditionFrom.Matches) > 0 {
-			matchBindSameKinds(src, bind.Name, ks, bind.ConditionFrom.Matches)
+			matchBindOneKinds(src, bind.Name, ks, bind.ConditionFrom.Matches)
 		}
 	}
 }
 
-func matchBindSameKinds(src Source, name string, ks KindSource, matches []BindMatch) {
+func matchBindOneKinds(src Source, name string, ks KindSource, matches []BindMatch) {
 	keys := ks.Keys()
 	kind := ks.Kind()
 
@@ -101,9 +106,9 @@ func matchBindSameKinds(src Source, name string, ks KindSource, matches []BindMa
 
 		for _, candidateIndex := range m[hash2] {
 			if reflect.DeepEqual(data[candidateIndex], secondValues) {
-				bindObjects(name,
-					kind, keys[candidateIndex], ks.Get(keys[candidateIndex]),
-					kind, key, object,
+				bindObjects(
+					name, kind, keys[candidateIndex], ks.Get(keys[candidateIndex]),
+					name, kind, key, object,
 				)
 			}
 		}
@@ -113,24 +118,24 @@ func matchBindSameKinds(src Source, name string, ks KindSource, matches []BindMa
 	}
 }
 
-func (p *processor) processBindDiffKind(
+func (p *processor) processBindTwoKind(
 	src Source, bind *BindDef, ks1, ks2 KindSource,
 ) {
-	setPropertiesForKindSource(ks1, bind.Name)
-	setPropertiesForKindSource(ks2, bind.Name)
+	setPropertiesForKindSource(ks1, bind.Name+suffixFirstKind)
+	setPropertiesForKindSource(ks2, bind.Name+suffixSecondKind)
 
 	if bind.Condition != nil {
 		if *bind.Condition {
-			matchBindDiffKinds(src, bind.Name, ks1, ks2, nil)
+			matchBindTwoKinds(src, bind.Name, ks1, ks2, nil)
 		}
 	} else if bind.ConditionFrom != nil {
 		if len(bind.ConditionFrom.Matches) > 0 {
-			matchBindDiffKinds(src, bind.Name, ks1, ks2, bind.ConditionFrom.Matches)
+			matchBindTwoKinds(src, bind.Name, ks1, ks2, bind.ConditionFrom.Matches)
 		}
 	}
 }
 
-func matchBindDiffKinds(src Source, name string, ks1, ks2 KindSource, matches []BindMatch) {
+func matchBindTwoKinds(src Source, name string, ks1, ks2 KindSource, matches []BindMatch) {
 	keys1 := ks1.Keys()
 	kind1 := ks1.Kind()
 	keys2 := ks2.Keys()
@@ -167,9 +172,9 @@ func matchBindDiffKinds(src Source, name string, ks1, ks2 KindSource, matches []
 
 		for _, candidateIndex := range m[hash2] {
 			if reflect.DeepEqual(data[candidateIndex], secondValues) {
-				bindObjects(name,
-					kind1, keys1[candidateIndex], ks1.Get(keys1[candidateIndex]),
-					kind2, key, object,
+				bindObjects(
+					name+suffixFirstKind, kind1, keys1[candidateIndex], ks1.Get(keys1[candidateIndex]),
+					name+suffixSecondKind, kind2, key, object,
 				)
 			}
 		}
@@ -186,12 +191,12 @@ func setPropertiesForKindSource(ks KindSource, name string) {
 	ks.SetProperties(name)
 }
 
-func bindObjects(name string, kind1, key1 string, obj1 Object, kind2, key2 string, obj2 Object) {
-	bindList1 := obj1.Get(name)
+func bindObjects(name1, kind1, key1 string, obj1 Object, name2, kind2, key2 string, obj2 Object) {
+	bindList1 := obj1.Get(name1)
 	bindList1.Push(NewRef(Ref{Kind: kind2, Key: key2}))
-	obj1.Set(name, bindList1)
+	obj1.Set(name1, bindList1)
 
-	bindList2 := obj2.Get(name)
+	bindList2 := obj2.Get(name2)
 	bindList2.Push(NewRef(Ref{Kind: kind1, Key: key1}))
-	obj2.Set(name, bindList2)
+	obj2.Set(name2, bindList2)
 }
