@@ -12,7 +12,7 @@ func EvalValue(src Source, obj Object, value any, valueFrom *ValueFrom) Object {
 		if valueFrom.Expr != nil {
 			result, err := EvalExpr(src, *valueFrom.Expr, map[string]Object{
 				"cur": obj,
-				"raw": obj.Get("data"),
+				"raw": obj.Get(rawKey),
 			})
 			if err != nil {
 				return NewObject(nil)

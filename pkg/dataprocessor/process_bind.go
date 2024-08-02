@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	rawKey             = "_raw"
 	kindKey            = "_kind"
 	keyKey             = "_key"
 	resourceVersionKey = "_resource_version"

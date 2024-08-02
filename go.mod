@@ -5,6 +5,7 @@ go 1.22.4
 require (
 	github.com/expr-lang/expr v1.16.9
 	github.com/gin-gonic/gin v1.10.0
+	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/spf13/cobra v1.7.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.30.3
@@ -56,7 +57,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
-	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

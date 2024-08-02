@@ -38,7 +38,7 @@ func (p *processor) Process(src Source) (Source, error) {
 				rv := obj.Get("metadata").Get("resourceVersion").Value()
 
 				newKs.Set(key, NewObject(map[string]any{
-					"data": NewRef(Ref{
+					rawKey: NewRef(Ref{
 						Kind: "raw." + kind.For,
 						Key:  key,
 					}),
