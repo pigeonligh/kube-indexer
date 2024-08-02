@@ -62,7 +62,7 @@ func (c *defaultCache) Init() {
 		oc := &objectCacheData{
 			data: make(map[string]*unstructured.Unstructured),
 		}
-		informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		_, _ = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				oc.Lock()
 				defer oc.Unlock()

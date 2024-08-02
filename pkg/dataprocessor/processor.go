@@ -1,28 +1,18 @@
 package dataprocessor
 
-import "reflect"
-
 type processor struct {
 	tmpl      *Template
 	rawPrefix string
-
-	rvCache    map[string]any // kindkey => resource_version
-	lastResult Source
 }
 
 func NewProcessor(tmpl *Template, rawPrefix string) Processor {
 	return &processor{
 		tmpl:      tmpl,
 		rawPrefix: rawPrefix,
-
-		rvCache: make(map[string]any),
 	}
 }
 
 func (p *processor) Process(src Source) (Source, error) {
-	lastRvCache := p.rvCache
-	p.rvCache = make(map[string]any)
-
 	s := NewSource()
 	for _, kind := range p.tmpl.Kinds {
 		ks := src.Kind(p.rawPrefix + kind.For)
@@ -47,16 +37,9 @@ func (p *processor) Process(src Source) (Source, error) {
 
 					resourceVersionKey: rv,
 				}))
-
-				kindkey := getKindKey(kind.Name, key)
-				p.rvCache[kindkey] = rv
 			}
 			s.Set(newKs)
 		}
-	}
-
-	if reflect.DeepEqual(lastRvCache, p.rvCache) {
-		return p.lastResult, nil
 	}
 
 	for _, act := range p.tmpl.Actions {
@@ -73,6 +56,5 @@ func (p *processor) Process(src Source) (Source, error) {
 			}
 		}
 	}
-	p.lastResult = s
 	return s, nil
 }

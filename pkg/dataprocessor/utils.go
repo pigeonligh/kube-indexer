@@ -36,7 +36,3 @@ func rangeT[T any](arr []T, ranges ...sliceRange) []T {
 	}
 	return ret
 }
-
-func getKindKey(kind string, key string) string {
-	return kind + "/" + key
-}
