@@ -94,19 +94,15 @@ func matchBindOneKinds(src Source, name string, ks KindSource, matches []BindMat
 		if object == nil {
 			continue
 		}
-		firstValues := make([]any, 0)
-		secondValues := make([]any, 0)
+		values := make([]any, 0)
 		for _, match := range matches {
-			firstValue := EvalValue(src, object, match.FirstValue, match.FirstValueFrom)
-			firstValues = append(firstValues, firstValue)
-			secondValue := EvalValue(src, object, match.SecondValue, match.SecondValueFrom)
-			secondValues = append(secondValues, secondValue)
+			value := EvalValue(src, object, match.FirstValue, match.FirstValueFrom)
+			values = append(values, value)
 		}
-		hash1 := HashValue(firstValues)
-		hash2 := HashValue(secondValues)
+		hash := HashValue(values)
 
-		for _, candidateIndex := range m[hash2] {
-			if reflect.DeepEqual(data[candidateIndex], secondValues) {
+		for _, candidateIndex := range m[hash] {
+			if reflect.DeepEqual(data[candidateIndex], values) {
 				bindObjects(
 					name, kind, keys[candidateIndex], ks.Get(keys[candidateIndex]),
 					name, kind, key, object,
@@ -114,8 +110,8 @@ func matchBindOneKinds(src Source, name string, ks KindSource, matches []BindMat
 			}
 		}
 
-		m[hash1] = append(m[hash1], i)
-		data[i] = firstValues
+		m[hash] = append(m[hash], i)
+		data[i] = values
 	}
 }
 
