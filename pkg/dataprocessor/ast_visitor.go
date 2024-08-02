@@ -50,7 +50,7 @@ func (visitor) Visit(node *ast.Node) {
 	}
 }
 
-func EvalExpr(src Source, e string, valueMap map[string]Object) (Object, error) {
+func EvalExpr(src Source, e string, valueMap map[string]any) (any, error) {
 	env := make(map[string]any)
 	for k, v := range valueMap {
 		env[k] = v
@@ -77,22 +77,34 @@ func EvalExpr(src Source, e string, valueMap map[string]Object) (Object, error) 
 }
 
 func evalDot(src Source) any {
-	return func(obj Object, key any) Object {
-		obj = UnrefObject(src, obj)
-
-		switch key := key.(type) {
-		case int:
-			obj = obj.GetIndex(key)
-
-		case string:
-			obj = obj.Get(key)
-
-		default:
-			return NewObject(nil)
+	return func(obj any, key any) any {
+		if src, ok := obj.(Source); ok {
+			k, _ := key.(string)
+			return src.Kind(k)
 		}
 
-		obj = UnrefObject(src, obj)
-		return NewObject(obj)
+		if ks, ok := obj.(KindSource); ok {
+			k, _ := key.(string)
+			return ks.Get(k)
+		}
+
+		if obj, ok := obj.(Object); ok {
+			obj = UnrefObject(src, obj)
+			switch key := key.(type) {
+			case int:
+				obj = obj.GetIndex(key)
+
+			case string:
+				obj = obj.Get(key)
+
+			default:
+				return NewObject(nil)
+			}
+
+			obj = UnrefObject(src, obj)
+			return NewObject(obj)
+		}
+		return NewObject(nil)
 	}
 }
 
