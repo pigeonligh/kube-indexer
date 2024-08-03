@@ -20,9 +20,7 @@ func init() {
 }
 
 func main() {
-	configFlags := &genericclioptions.ConfigFlags{
-		KubeConfig: new(string),
-	}
+	var kubeconfig string
 	var templateFile string
 	var restfulPort int
 
@@ -33,7 +31,9 @@ func main() {
 				panic(err)
 			}
 
-			c, err := cache.New(configFlags, template.ForList()...)
+			c, err := cache.New(&genericclioptions.ConfigFlags{
+				KubeConfig: &kubeconfig,
+			}, template.ForList()...)
 			if err != nil {
 				panic(err)
 			}
@@ -51,7 +51,7 @@ func main() {
 		},
 	}
 
-	configFlags.AddFlags(cmd.Flags())
+	cmd.Flags().StringVar(&kubeconfig, "kubeconfig", os.Getenv("KUBECONFIG"), "kubeconfig")
 	cmd.Flags().StringVar(&templateFile, "template", "", "template")
 	cmd.Flags().IntVar(&restfulPort, "port", 8080, "port")
 	_ = cmd.Execute()

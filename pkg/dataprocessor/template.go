@@ -23,6 +23,7 @@ type BindMatch struct {
 	FirstValueFrom  *ValueFrom `yaml:"firstValueFrom"`
 	SecondValue     any        `yaml:"secondValue"`
 	SecondValueFrom *ValueFrom `yaml:"secondValueFrom"`
+	AllowNull       bool       `yaml:"allowNull"`
 }
 
 type BindConditionFrom struct {

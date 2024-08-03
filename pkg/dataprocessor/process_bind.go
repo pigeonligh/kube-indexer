@@ -95,9 +95,17 @@ func matchBindOneKinds(src Source, name string, ks KindSource, matches []BindMat
 			continue
 		}
 		values := make([]any, 0)
+		hasNull := false
 		for _, match := range matches {
 			value := EvalValue(src, object, match.FirstValue, match.FirstValueFrom)
+			if UnrefObject(src, value).Value() == nil && !match.AllowNull {
+				hasNull = true
+				break
+			}
 			values = append(values, value)
+		}
+		if hasNull {
+			continue
 		}
 		hash := HashValue(values)
 
