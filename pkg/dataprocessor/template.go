@@ -1,8 +1,9 @@
 package dataprocessor
 
 type KindDef struct {
-	Name string `yaml:"name"`
-	For  string `yaml:"for"`
+	Name    string   `yaml:"name"`
+	For     string   `yaml:"for"`
+	Headers []string `yaml:"headers"`
 }
 
 type ValueFrom struct {
