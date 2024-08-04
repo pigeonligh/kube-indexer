@@ -10,7 +10,7 @@ function ResultObjectViewer(props) {
   delete data._kind;
   delete data._resource_version;
 
-  const viewListItem = (val) => {
+  const viewListItem = (k, val) => {
     if (val === null) {
       return (<Chip size="small" label="NULL"/>)
     }
@@ -19,9 +19,23 @@ function ResultObjectViewer(props) {
         return (
           <li>
             <Link onClick={() => {
-              props.queryFn(val.ref.kind, "cur._key==\""+val.ref.key+"\"", "")
+              props.queryFn(
+                val.ref.kind,
+                "global."+props.data._kind+"[\""+props.data._key+"\"]."+k,
+                "",
+                "",
+              )
             }}>
-              {val.ref.kind} / {val.ref.key}
+              {val.ref.kind}
+            </Link> / <Link onClick={() => {
+              props.queryFn(
+                val.ref.kind,
+                "global."+props.data._kind+"[\""+props.data._key+"\"]."+k,
+                "cur._key==\""+val.ref.key+"\"",
+                "",
+              )
+            }}>
+              {val.ref.key}
             </Link>
           </li>
         )
@@ -41,7 +55,7 @@ function ResultObjectViewer(props) {
     return (<span>{val}</span>)
   }
 
-  const viewValue = (val) => {
+  const viewValue = (k, val) => {
     if (val === null) {
       return (<Chip size="small" label="NULL"/>)
     }
@@ -50,7 +64,7 @@ function ResultObjectViewer(props) {
         if (val.length > 0) {
           return (
             <List>
-              {val.map(viewListItem)}
+              {val.map((v) => viewListItem(k, v))}
             </List>
           )
         }
@@ -82,7 +96,7 @@ function ResultObjectViewer(props) {
                 {k}
               </TableCell>
               <TableCell>
-                {viewValue(data[k])}
+                {viewValue(k, data[k])}
               </TableCell>
           </TableRow>
           ))}

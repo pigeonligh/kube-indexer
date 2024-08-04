@@ -1,12 +1,26 @@
 import { CodeBlock, dracula } from "react-code-blocks";
-import IconButton from '@mui/material/IconButton';
-import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
-function ResultTab(props) {
+function ResultInfo(props) {
   const results = props.results;
   const current = props.current;
-  const setCurrent = props.setCurrent;
+
+  const viewFrom = (list_param) => {
+    if (list_param.from === "") {
+      return
+    }
+    return (
+      <div>
+        <span>From: </span>
+        <CodeBlock
+          language="go"
+          text={results[current].list_param.from}
+          codeBlock
+          theme={dracula}
+          showLineNumbers={false}
+        />
+      </div>
+    )
+  }
 
   const viewFilter = (list_param) => {
     if (list_param.filter === "") {
@@ -14,7 +28,7 @@ function ResultTab(props) {
     }
     return (
       <div>
-        <p>Filter: </p>
+        <span>Filter: </span>
         <CodeBlock
           language="go"
           text={results[current].list_param.filter}
@@ -32,7 +46,7 @@ function ResultTab(props) {
     }
     return (
       <div>
-        <p>Group By: </p>
+        <span>Group By: </span>
         <CodeBlock
           language="go"
           text={results[current].list_param.group_by}
@@ -50,7 +64,8 @@ function ResultTab(props) {
     }
     return (
       <div>
-        <p>Kind: {results[current].kind}</p>
+        <span>Kind: {results[current].kind}</span>
+        {viewFrom(results[current].list_param)}
         {viewFilter(results[current].list_param)}
         {viewGroupBy(results[current].list_param)}
       </div>
@@ -61,36 +76,9 @@ function ResultTab(props) {
     <div style={{
         maxWidth: '100%'
     }}>
-      <div>
-      </div>
-      <p>History: 
-        <IconButton
-          aria-label="expand row"
-          size="small"
-          onClick={() => {
-            if (current > 0) {
-              setCurrent(current-1);
-            }
-          }}
-        >
-          <KeyboardArrowLeftIcon />
-        </IconButton>
-        {current + 1} / {results.length}
-        <IconButton
-          aria-label="expand row"
-          size="small"
-          onClick={() => {
-            if (current < results.length - 1) {
-              setCurrent(current+1);
-            }
-          }}
-        >
-          <KeyboardArrowRightIcon />
-        </IconButton>
-      </p>
       {currentInfo()}
     </div>
   );
 }
 
-export default ResultTab;
+export default ResultInfo;

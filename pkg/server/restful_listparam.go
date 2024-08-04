@@ -8,6 +8,7 @@ import (
 )
 
 type listParam struct {
+	From    string `json:"from"`
 	Filter  string `json:"filter"`
 	GroupBy string `json:"group_by"`
 }
@@ -82,4 +83,24 @@ func getGroupFunc(src dataprocessor.Source, groupBy string) groupFunc {
 			return "{" + reflect.TypeOf(v).String() + "}"
 		}
 	}
+}
+
+func getKeys(src dataprocessor.Source, ks dataprocessor.KindSource, from string) []string {
+	if from == "" {
+		return ks.Keys()
+	}
+	refs := dataprocessor.EvalValue(src, dataprocessor.NewObject(nil), nil, &dataprocessor.ValueFrom{
+		Expr: &from,
+	})
+	n := refs.Range(nil, nil).Len()
+	ret := make([]string, 0)
+	for i := 0; i < n; i++ {
+		obj := refs.GetIndex(i)
+		if ref := obj.Ref(); ref != nil {
+			if ref.Kind == ks.Kind() {
+				ret = append(ret, ref.Key)
+			}
+		}
+	}
+	return ret
 }

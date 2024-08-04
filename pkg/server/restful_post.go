@@ -52,7 +52,7 @@ func (s *restfulServer) listObjects(ctx *gin.Context) {
 	groupFunc := getGroupFunc(data, lparam.GroupBy)
 
 	groups := make(map[string][]listItem)
-	for _, key := range ks.Keys() {
+	for _, key := range getKeys(data, ks, lparam.From) {
 		obj := ks.Get(key)
 		if obj == nil {
 			continue

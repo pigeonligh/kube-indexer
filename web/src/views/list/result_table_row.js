@@ -16,6 +16,10 @@ function ResultTableRow(props) {
   const [collapseOpen, setCollapseOpen] = React.useState(false);
   const [modalOpen, setModalOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    setCollapseOpen(false)
+  }, [props.data])
+
   const getTableRow = () => {
     const arr = [];
     arr.push(
