@@ -2,7 +2,7 @@ import * as React from 'react';
 import ResultGroup from './result_group'
 
 function ResultViewer(props) {
-  const headers = props.data.headers;
+  const headers = props.data.headers ? props.data.headers : ["_key"];
   const groups = props.data.result_groups;
 
   const getGroupCount = () => {

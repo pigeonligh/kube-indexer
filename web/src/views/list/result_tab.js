@@ -1,4 +1,4 @@
-import { CopyBlock, dracula } from "react-code-blocks";
+import { CodeBlock, dracula } from "react-code-blocks";
 import IconButton from '@mui/material/IconButton';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
@@ -15,7 +15,7 @@ function ResultTab(props) {
     return (
       <div>
         <p>Filter: </p>
-        <CopyBlock
+        <CodeBlock
           language="go"
           text={results[current].list_param.filter}
           codeBlock
@@ -33,7 +33,7 @@ function ResultTab(props) {
     return (
       <div>
         <p>Group By: </p>
-        <CopyBlock
+        <CodeBlock
           language="go"
           text={results[current].list_param.group_by}
           codeBlock

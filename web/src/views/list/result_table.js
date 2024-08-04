@@ -10,7 +10,7 @@ import ResultTableRow from './result_table_row';
 function ResultTable(props) {
   const headers = props.headers;
 
-  const getTableHeadRows = (props) => {
+  const getTableHeadRows = () => {
     const arr = [];
     arr.push(
       <TableCell />
