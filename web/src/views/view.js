@@ -171,6 +171,7 @@ function MainView(props) {
         <Results
           datas={results}
           current={current}
+          queryFn={queryFn}
         />
       </Box>
     </Box>

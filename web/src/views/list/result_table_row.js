@@ -56,9 +56,9 @@ function ResultTableRow(props) {
         {getTableRow()}
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0, background: 'white' }} colSpan={6}>
           <Collapse in={collapseOpen} timeout="auto" unmountOnExit>
-            <ResultObjectViewer data={row}/>
+            <ResultObjectViewer data={row} queryFn={props.queryFn}/>
           </Collapse>
         </TableCell>
       </TableRow>

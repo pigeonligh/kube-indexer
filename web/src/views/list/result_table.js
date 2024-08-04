@@ -31,12 +31,12 @@ function ResultTable(props) {
   }
 
   const getTableData = (row) => {
-    return <ResultTableRow headers={headers} data={row}/>
+    return <ResultTableRow headers={headers} data={row} queryFn={props.queryFn}/>
   }
 
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
+      <Table sx={{ minWidth: 650, background: '#f7f7f7' }}>
         <TableHead>
           {getTableHeadRows(props)}
         </TableHead>

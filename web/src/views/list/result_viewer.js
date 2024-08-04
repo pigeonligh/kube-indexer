@@ -28,6 +28,7 @@ function ResultViewer(props) {
             <ResultGroup
               headers={headers}
               data={group}
+              queryFn={props.queryFn}
             />
           )
         })

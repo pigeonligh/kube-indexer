@@ -9,7 +9,7 @@ function Results(props) {
       return
     }
     return (
-      <ResultViewer data={results[current]}/>
+      <ResultViewer data={results[current]} queryFn={props.queryFn}/>
     )
   }
 
