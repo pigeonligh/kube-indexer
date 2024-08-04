@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pigeonligh/kube-indexer/pkg/dataprocessor"
 )
 
 func (s *restfulServer) getKinds(ctx *gin.Context) {
@@ -31,6 +32,7 @@ func (s *restfulServer) getObject(ctx *gin.Context) {
 	kind := ctx.Param("kind")
 	key := ctx.Param("key")
 	key = strings.TrimPrefix(key, "/")
+	raw := ctx.Query("raw")
 
 	data := s.s.data
 	if data == nil {
@@ -45,6 +47,10 @@ func (s *restfulServer) getObject(ctx *gin.Context) {
 		if obj == nil {
 			s.responseError(ctx, http.StatusBadRequest, errorObjectNotFound)
 		} else {
+			if raw == "true" {
+				obj = obj.Get("_raw")
+				obj = dataprocessor.UnrefObject(data, obj)
+			}
 			ctx.JSON(http.StatusOK, obj.Value())
 		}
 	}
