@@ -1,49 +1,50 @@
-import * as React from 'react';
-import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+import { Button, FormControl, MenuItem, TextField } from "@mui/material";
 
 function QueryView(props) {
-  const [from, setFrom] = React.useState("");
-  const [filter, setFilter] = React.useState("");
-  const [groupBy, setGroupBy] = React.useState("");
+  const from = props.from;
+  const setFrom = props.setFrom;
+  const filter = props.filter;
+  const setFilter = props.setFilter;
+  const groupBy = props.groupBy;
+  const setGroupBy = props.setGroupBy;
 
   return (
     <div>
       <FormControl fullWidth sx={{marginBottom: '10px'}}>
-        <InputLabel id="demo-simple-select-label">Kind</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={props.queryKind}
+        <TextField
           label="Kind"
+          select
+          value={props.queryKind}
           size="small"
           onChange={(event) => {
             props.setQueryKind(event.target.value)
           }}
+          InputLabelProps={{ shrink: true }}
         >
           {
             props.kinds.map((value) => (
               <MenuItem value={value}>{value}</MenuItem>
             ))
           }
-        </Select>
+        </TextField>
       </FormControl>
 
       <FormControl fullWidth sx={{marginBottom: '10px'}}>
         <TextField size="small" label="From" value={from} onChange={(event) => {
           setFrom(event.target.value)
-        }} />
+        }} InputLabelProps={{ shrink: true }} />
       </FormControl>
 
       <FormControl fullWidth sx={{marginBottom: '10px'}}>
         <TextField size="small" label="Filter" value={filter} onChange={(event) => {
           setFilter(event.target.value)
-        }} />
+        }} InputLabelProps={{ shrink: true }} />
       </FormControl>
 
       <FormControl fullWidth sx={{marginBottom: '10px'}}>
         <TextField size="small" label="Group By" value={groupBy} onChange={(event) => {
           setGroupBy(event.target.value)
-        }} />
+        }} InputLabelProps={{ shrink: true }} />
       </FormControl>
 
       <FormControl fullWidth>

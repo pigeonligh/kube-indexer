@@ -21,6 +21,10 @@ function MainView(props) {
   const [kinds, setKinds] = React.useState([]);
   const [queryKind, setQueryKind] = React.useState("");
 
+  const [from, setFrom] = React.useState("");
+  const [filter, setFilter] = React.useState("");
+  const [groupBy, setGroupBy] = React.useState("");
+
   React.useEffect(() => {
     fetch('/api/kinds', {
       method: 'GET'
@@ -71,6 +75,13 @@ function MainView(props) {
             kinds={kinds}
             queryKind={queryKind}
             setQueryKind={setQueryKind}
+
+            from={from}
+            setFrom={setFrom}
+            filter={filter}
+            setFilter={setFilter}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
         </ListItem>
       </List>
@@ -81,6 +92,11 @@ function MainView(props) {
             results={results}
             current={current}
             setCurrent={setCurrent}
+
+            setKind={setQueryKind}
+            setFrom={setFrom}
+            setFilter={setFilter}
+            setGroupBy={setGroupBy}
           />
         </ListItem>
       </List>

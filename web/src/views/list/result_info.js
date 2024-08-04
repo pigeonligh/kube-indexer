@@ -1,8 +1,25 @@
+import * as React from 'react';
 import { CodeBlock, dracula } from "react-code-blocks";
 
 function ResultInfo(props) {
   const results = props.results;
   const current = props.current;
+
+  const setKind = props.setKind;
+  const setFrom = props.setFrom;
+  const setFilter = props.setFilter;
+  const setGroupBy = props.setGroupBy;
+
+  React.useEffect(() => {
+    if (current < 0 || current >= results.length) {
+      return
+    }
+    const list_param = results[current].list_param;
+    setKind(results[current].kind)
+    setFrom(list_param.from)
+    setFilter(list_param.filter)
+    setGroupBy(list_param.group_by)
+  }, [results, current, setKind, setFrom, setFilter, setGroupBy])
 
   const viewFrom = (list_param) => {
     if (list_param.from === "") {
@@ -13,7 +30,7 @@ function ResultInfo(props) {
         <span>From: </span>
         <CodeBlock
           language="go"
-          text={results[current].list_param.from}
+          text={list_param.from}
           codeBlock
           theme={dracula}
           showLineNumbers={false}
@@ -31,7 +48,7 @@ function ResultInfo(props) {
         <span>Filter: </span>
         <CodeBlock
           language="go"
-          text={results[current].list_param.filter}
+          text={list_param.filter}
           codeBlock
           theme={dracula}
           showLineNumbers={false}
@@ -49,7 +66,7 @@ function ResultInfo(props) {
         <span>Group By: </span>
         <CodeBlock
           language="go"
-          text={results[current].list_param.group_by}
+          text={list_param.group_by}
           codeBlock
           theme={dracula}
           showLineNumbers={false}
