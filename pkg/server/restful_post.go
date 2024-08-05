@@ -11,12 +11,12 @@ import (
 	"github.com/pigeonligh/kube-indexer/pkg/dataprocessor"
 )
 
-func (s *restfulServer) eval(ctx *gin.Context) {
+func (rr *restfulRegisterer) eval(ctx *gin.Context) {
 	expr := ctx.Query("expr")
 
-	data := s.s.data
+	data := rr.s.data
 	if data == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorNotInit)
+		rr.responseError(ctx, http.StatusBadRequest, errorNotInit)
 		return
 	}
 	result := dataprocessor.EvalValue(data, dataprocessor.NewObject(nil), nil, &dataprocessor.ValueFrom{
@@ -26,25 +26,25 @@ func (s *restfulServer) eval(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result.Value())
 }
 
-func (s *restfulServer) listObjects(ctx *gin.Context) {
+func (rr *restfulRegisterer) listObjects(ctx *gin.Context) {
 	kind := ctx.Param("kind")
 
 	lparam := listParam{}
 	err := ctx.BindJSON(&lparam)
 	if err != nil {
-		s.responseError(ctx, http.StatusBadRequest, errorInvalidBody)
+		rr.responseError(ctx, http.StatusBadRequest, errorInvalidBody)
 		fmt.Println(err)
 		return
 	}
 
-	data := s.s.data
+	data := rr.s.data
 	if data == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorNotInit)
+		rr.responseError(ctx, http.StatusBadRequest, errorNotInit)
 		return
 	}
 	ks := data.Kind(kind)
 	if ks == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorKindNotFound)
+		rr.responseError(ctx, http.StatusBadRequest, errorKindNotFound)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (s *restfulServer) listObjects(ctx *gin.Context) {
 		Time:       time.Now().Format(time.RFC3339),
 		GroupCount: len(groups),
 	}
-	for _, kdef := range s.s.template.Kinds {
+	for _, kdef := range rr.s.template.Kinds {
 		if kdef.Name == kind {
 			result.Headers = kdef.Headers
 		}

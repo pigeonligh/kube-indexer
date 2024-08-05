@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -9,8 +10,8 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/utils/ptr"
 
-	"github.com/pigeonligh/kube-indexer/pkg/cache"
 	"github.com/pigeonligh/kube-indexer/pkg/dataprocessor"
 	"github.com/pigeonligh/kube-indexer/pkg/server"
 )
@@ -30,24 +31,30 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+			r := gin.Default()
+			kcm := getKubeConfigMap(kubeconfig)
 
-			c, err := cache.New(&genericclioptions.ConfigFlags{
-				KubeConfig: &kubeconfig,
-			}, template.ForList()...)
-			if err != nil {
-				panic(err)
+			clusterGroup := r.Group("api").Group("cluster")
+			clusterGroup.GET("", func(ctx *gin.Context) {
+				names := make([]string, 0)
+				for name := range kcm {
+					names = append(names, name)
+				}
+				ctx.JSON(http.StatusOK, names)
+			})
+			for name, config := range kcm {
+				s := server.New(config, clusterGroup.Group(name), template)
+				if err := s.Init(cmd.Context()); err != nil {
+					panic(err)
+				}
+				go func() {
+					if err := s.Run(cmd.Context()); err != nil {
+						panic(err)
+					}
+				}()
 			}
-			c.Init()
-			go func() {
-				_ = c.Run(cmd.Context())
-			}()
 
-			c.WaitForCacheSync(cmd.Context())
-
-			s := server.New(c, restfulPort, template)
-			if err = s.Run(cmd.Context()); err != nil {
-				panic(err)
-			}
+			r.Run(fmt.Sprintf(":%v", restfulPort))
 		},
 	}
 
@@ -68,4 +75,30 @@ func readTemplate(templateFile string) (*dataprocessor.Template, error) {
 		return nil, fmt.Errorf("parse template file: %w", err)
 	}
 	return template, nil
+}
+
+func getKubeConfigMap(kubeconfig string) map[string]*genericclioptions.ConfigFlags {
+	if kubeconfig == "" {
+		return map[string]*genericclioptions.ConfigFlags{
+			"default": {},
+		}
+	}
+
+	configflags := &genericclioptions.ConfigFlags{
+		KubeConfig: &kubeconfig,
+	}
+	config, err := configflags.ToRawKubeConfigLoader().RawConfig()
+	if err != nil {
+		return map[string]*genericclioptions.ConfigFlags{
+			"default": {},
+		}
+	}
+	ret := make(map[string]*genericclioptions.ConfigFlags)
+	for name := range config.Contexts {
+		ret[name] = &genericclioptions.ConfigFlags{
+			KubeConfig: &kubeconfig,
+			Context:    ptr.To(name),
+		}
+	}
+	return ret
 }

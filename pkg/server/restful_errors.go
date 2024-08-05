@@ -9,7 +9,7 @@ const (
 	errorObjectNotFound = "object not found"
 )
 
-func (s *restfulServer) responseError(ctx *gin.Context, code int, err string) {
+func (rr *restfulRegisterer) responseError(ctx *gin.Context, code int, err string) {
 	ctx.JSON(code, gin.H{
 		"error": err,
 	})

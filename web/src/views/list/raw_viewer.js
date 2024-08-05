@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Box, Typography } from "@mui/material";
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
+import { GetCluster } from '../../js/cluster';
 
 const style = {
   position: 'absolute',
@@ -19,7 +20,7 @@ function RawViewer(props) {
 
   React.useEffect(() => {
     if (props.open) {
-      fetch('/api/resource/'+props.kind+"/"+props.resourcekey+"?raw=true", {
+      fetch('/api/cluster/'+GetCluster()+'/resource/'+props.kind+"/"+props.resourcekey+"?raw=true", {
         method: 'GET'
       }).then(
         (response) => response.json()

@@ -8,44 +8,44 @@ import (
 	"github.com/pigeonligh/kube-indexer/pkg/dataprocessor"
 )
 
-func (s *restfulServer) getKinds(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, s.s.template.KindList())
+func (rr *restfulRegisterer) getKinds(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, rr.s.template.KindList())
 }
 
-func (s *restfulServer) getKeys(ctx *gin.Context) {
+func (rr *restfulRegisterer) getKeys(ctx *gin.Context) {
 	kind := ctx.Param("kind")
 
-	data := s.s.data
+	data := rr.s.data
 	if data == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorNotInit)
+		rr.responseError(ctx, http.StatusBadRequest, errorNotInit)
 		return
 	}
 	ks := data.Kind(kind)
 	if ks == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorKindNotFound)
+		rr.responseError(ctx, http.StatusBadRequest, errorKindNotFound)
 	} else {
 		ctx.JSON(http.StatusOK, ks.Keys())
 	}
 }
 
-func (s *restfulServer) getObject(ctx *gin.Context) {
+func (rr *restfulRegisterer) getObject(ctx *gin.Context) {
 	kind := ctx.Param("kind")
 	key := ctx.Param("key")
 	key = strings.TrimPrefix(key, "/")
 	raw := ctx.Query("raw")
 
-	data := s.s.data
+	data := rr.s.data
 	if data == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorNotInit)
+		rr.responseError(ctx, http.StatusBadRequest, errorNotInit)
 		return
 	}
 	ks := data.Kind(kind)
 	if ks == nil {
-		s.responseError(ctx, http.StatusBadRequest, errorKindNotFound)
+		rr.responseError(ctx, http.StatusBadRequest, errorKindNotFound)
 	} else {
 		obj := ks.Get(key)
 		if obj == nil {
-			s.responseError(ctx, http.StatusBadRequest, errorObjectNotFound)
+			rr.responseError(ctx, http.StatusBadRequest, errorObjectNotFound)
 		} else {
 			if raw == "true" {
 				obj = obj.Get("_raw")

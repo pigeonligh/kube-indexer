@@ -12,6 +12,8 @@ import QueryView from './list/query_view';
 import Results from './list/results';
 import ResultInfo from "./list/result_info";
 import ResultSwitch from './list/result_switch';
+import { GetCluster } from '../js/cluster';
+import ClusterSelect from './cluster_select';
 
 const drawerWidth = 320;
 
@@ -26,7 +28,7 @@ function MainView(props) {
   const [groupBy, setGroupBy] = React.useState("");
 
   React.useEffect(() => {
-    fetch('/api/kinds', {
+    fetch('/api/cluster/'+GetCluster()+'/kinds', {
       method: 'GET'
     }).then(
       (response) => response.json()
@@ -38,7 +40,7 @@ function MainView(props) {
   }, [props])
 
   const queryFn = (kind, from, filter, groupBy) => {
-    fetch('/api/resource/'+kind, {
+    fetch('/api/cluster/'+GetCluster()+'/resource/'+kind, {
       method: 'POST',
       body: JSON.stringify({
         from: from,
@@ -67,6 +69,12 @@ function MainView(props) {
           KubeIndexer
         </Typography>
       </Toolbar>
+      <Divider />
+      <List>
+        <ListItem>
+          <ClusterSelect />
+        </ListItem>
+      </List>
       <Divider />
       <List>
         <ListItem>

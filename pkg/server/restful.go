@@ -1,25 +1,14 @@
 package server
 
-import (
-	"context"
-	"fmt"
-
-	"github.com/gin-gonic/gin"
-)
-
-type restfulServer struct {
+type restfulRegisterer struct {
 	s *server
 }
 
-func (s *restfulServer) Run(ctx context.Context) error {
-	r := gin.Default()
+func (rr *restfulRegisterer) Init() {
+	rr.s.router.GET("kinds", rr.getKinds)
+	rr.s.router.GET("resource/:kind", rr.getKeys)
+	rr.s.router.GET("resource/:kind/*key", rr.getObject)
 
-	r.GET("/api/kinds", s.getKinds)
-	r.GET("/api/resource/:kind", s.getKeys)
-	r.GET("/api/resource/:kind/*key", s.getObject)
-
-	r.POST("/api/eval", s.eval)
-	r.POST("/api/resource/:kind", s.listObjects)
-
-	return r.Run(fmt.Sprintf(":%v", s.s.port))
+	rr.s.router.POST("eval", rr.eval)
+	rr.s.router.POST("resource/:kind", rr.listObjects)
 }

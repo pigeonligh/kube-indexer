@@ -3,29 +3,32 @@ package server
 import (
 	"context"
 
+	"github.com/gin-gonic/gin"
 	"github.com/pigeonligh/kube-indexer/pkg/cache"
 	"github.com/pigeonligh/kube-indexer/pkg/dataprocessor"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 type Server interface {
+	Init(ctx context.Context) error
 	Run(ctx context.Context) error
 }
 
 type server struct {
-	c cache.Cache
-
-	port     int
+	config   *genericclioptions.ConfigFlags
+	router   gin.IRouter
 	template *dataprocessor.Template
+
+	c cache.Cache
 
 	data      dataprocessor.Source
 	processor dataprocessor.Processor
 }
 
-func New(c cache.Cache, port int, template *dataprocessor.Template) Server {
+func New(config *genericclioptions.ConfigFlags, router gin.IRouter, template *dataprocessor.Template) Server {
 	return &server{
-		c: c,
-
-		port:     port,
+		config:   config,
+		router:   router,
 		template: template,
 
 		data:      dataprocessor.NewSource(),
@@ -33,14 +36,25 @@ func New(c cache.Cache, port int, template *dataprocessor.Template) Server {
 	}
 }
 
-func (s *server) Run(ctx context.Context) error {
-	go func(ctx context.Context) {
-		restful := &restfulServer{s}
+func (s *server) Init(ctx context.Context) error {
+	c, err := cache.New(s.config, s.template.ForList()...)
+	if err != nil {
+		return err
+	}
+	c.Init()
+	s.c = c
 
-		if err := restful.Run(ctx); err != nil {
-			panic(err)
-		}
-	}(ctx)
+	restful := &restfulRegisterer{s}
+	restful.Init()
+
+	return nil
+}
+
+func (s *server) Run(ctx context.Context) error {
+	go func() {
+		_ = s.c.Run(ctx)
+	}()
+	s.c.WaitForCacheSync(ctx)
 
 	go func(ctx context.Context) {
 		cache := &cacheServer{s}
