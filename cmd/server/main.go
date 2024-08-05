@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -43,15 +45,7 @@ func main() {
 				ctx.JSON(http.StatusOK, names)
 			})
 			for name, config := range kcm {
-				s := server.New(config, clusterGroup.Group(name), template)
-				if err := s.Init(cmd.Context()); err != nil {
-					panic(err)
-				}
-				go func() {
-					if err := s.Run(cmd.Context()); err != nil {
-						panic(err)
-					}
-				}()
+				go runServer(cmd.Context(), name, config, clusterGroup, template)
 			}
 
 			r.Run(fmt.Sprintf(":%v", restfulPort))
@@ -101,4 +95,26 @@ func getKubeConfigMap(kubeconfig string) map[string]*genericclioptions.ConfigFla
 		}
 	}
 	return ret
+}
+
+func runServer(ctx context.Context, name string, config *genericclioptions.ConfigFlags, router gin.IRouter, template *dataprocessor.Template) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+
+		default:
+			s := server.New(config, router.Group(name), template)
+			if err := s.Init(ctx); err != nil {
+				fmt.Fprintf(os.Stderr, "Init %v failed: %v\n", name, err)
+				time.Sleep(time.Second * 10)
+				continue
+			}
+			if err := s.Run(ctx); err != nil {
+				fmt.Fprintf(os.Stderr, "Run %v failed: %v\n", name, err)
+				time.Sleep(time.Second * 10)
+				continue
+			}
+		}
+	}
 }
