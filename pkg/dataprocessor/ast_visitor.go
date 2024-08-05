@@ -59,6 +59,7 @@ func EvalExpr(src Source, e string, valueMap map[string]any) (any, error) {
 	env["_range"] = evalRange(src)
 	env["_val"] = evalValue(src)
 	env["len"] = evalLen()
+	env["concat"] = evalConcat()
 
 	options := make([]expr.Option, 0)
 	options = append(options, expr.Env(env))
@@ -100,8 +101,7 @@ func evalDot(src Source) any {
 			default:
 				return NewObject(nil)
 			}
-
-			obj = UnrefObject(src, obj)
+			// obj = UnrefObject(src, obj)
 			return NewObject(obj)
 		}
 		return NewObject(nil)
@@ -135,5 +135,11 @@ func evalValue(src Source) any {
 func evalLen() any {
 	return func(o Object) Object {
 		return NewObject(o.Len())
+	}
+}
+
+func evalConcat() any {
+	return func(o Object) Object {
+		return o.Concat()
 	}
 }

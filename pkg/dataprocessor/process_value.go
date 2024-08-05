@@ -28,6 +28,13 @@ func UnrefObject(src Source, obj Object) Object {
 	for obj != nil && obj.Ref() != nil {
 		obj = obj.RefValue(src)
 	}
+	if arrlength := obj.Range(nil, nil).Len(); arrlength > 0 {
+		ret := make(Objects, 0)
+		for i := 0; i < arrlength; i++ {
+			ret = append(ret, UnrefObject(src, obj.GetIndex(i)))
+		}
+		obj = NewObject(ret)
+	}
 	return obj
 }
 

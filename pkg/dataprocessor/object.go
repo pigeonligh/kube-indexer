@@ -24,6 +24,7 @@ type Object interface {
 	SetIndex(int, Object)
 	GetIndex(int) Object
 	Range(start, end *int) Object
+	Concat() Object
 	Push(Object)
 
 	Len() int
@@ -180,6 +181,39 @@ func (obj *object) Range(start, end *int) Object {
 		ret := make(Objects, 0)
 		for _, v := range rangeT(val, sliceRange{start, end}) {
 			ret = append(ret, v)
+		}
+		return NewObject(ret)
+	}
+	return NewObject(nil)
+}
+
+func (obj *object) Concat() Object {
+	if obj.R != nil {
+		panic("cannot call Concat for ref object")
+	}
+
+	switch val := obj.Val.(type) {
+	case Object:
+		return val.Concat()
+
+	case []any:
+		ret := make(Objects, 0)
+		for _, subVal := range val {
+			subObj := NewObject(subVal)
+			arrlength := subObj.Range(nil, nil).Len()
+			for i := 0; i < arrlength; i++ {
+				ret = append(ret, subObj.GetIndex(i))
+			}
+		}
+		return NewObject(ret)
+
+	case Objects:
+		ret := make(Objects, 0)
+		for _, subObj := range val {
+			arrlength := subObj.Range(nil, nil).Len()
+			for i := 0; i < arrlength; i++ {
+				ret = append(ret, subObj.GetIndex(i))
+			}
 		}
 		return NewObject(ret)
 	}
