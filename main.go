@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +21,9 @@ import (
 	"github.com/pigeonligh/kube-indexer/pkg/dataprocessor"
 	"github.com/pigeonligh/kube-indexer/pkg/server"
 )
+
+//go:embed all:web/build
+var assets embed.FS
 
 func init() {
 	gin.SetMode(gin.ReleaseMode)
@@ -33,10 +40,10 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			r := gin.Default()
+			backend := gin.New()
 			kcm := getKubeConfigMap(kubeconfig)
 
-			clusterGroup := r.Group("api").Group("cluster")
+			clusterGroup := backend.Group("api").Group("cluster")
 			clusterGroup.GET("", func(ctx *gin.Context) {
 				names := make([]string, 0)
 				for name := range kcm {
@@ -48,6 +55,18 @@ func main() {
 				go runServer(cmd.Context(), name, config, clusterGroup, template)
 			}
 
+			frontend := gin.New()
+			frontend.StaticFS("/", http.FS(subpathFS{assets, "web/build"}))
+
+			r := gin.Default()
+			r.Any("*path", func(ctx *gin.Context) {
+				path := ctx.Param("path")
+				if strings.HasPrefix(path, "/api/") {
+					backend.ServeHTTP(ctx.Writer, ctx.Request)
+				} else {
+					frontend.ServeHTTP(ctx.Writer, ctx.Request)
+				}
+			})
 			r.Run(fmt.Sprintf(":%v", restfulPort))
 		},
 	}
@@ -117,4 +136,13 @@ func runServer(ctx context.Context, name string, config *genericclioptions.Confi
 			}
 		}
 	}
+}
+
+type subpathFS struct {
+	fs.FS
+	subpath string
+}
+
+func (f subpathFS) Open(name string) (fs.File, error) {
+	return f.FS.Open(filepath.Join(f.subpath, name))
 }
