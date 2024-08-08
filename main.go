@@ -144,5 +144,9 @@ type subpathFS struct {
 }
 
 func (f subpathFS) Open(name string) (fs.File, error) {
-	return f.FS.Open(filepath.Join(f.subpath, name))
+	path := filepath.Join(f.subpath, name)
+	if file, err := f.FS.Open(path); err == nil {
+		return file, err
+	}
+	return f.FS.Open(filepath.Join(f.subpath, "index.html"))
 }
